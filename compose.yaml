@@ -33,6 +33,7 @@ services:
       - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-8GB}
       - --storage.tsdb.wal-compression
       - --web.enable-lifecycle
+      - --web.enable-admin-api
 
     #==========================================================================
     # PROMETHEUS RESOURCE LIMITS

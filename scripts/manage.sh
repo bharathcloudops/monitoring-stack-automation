@@ -375,21 +375,35 @@ backup_stack() {
   prometheus_volume_path=$(docker volume inspect monitoring-stack_prometheus-data --format '{{ .Mountpoint }}')
   alertmanager_volume_path=$(docker volume inspect monitoring-stack_alertmanager-data --format '{{ .Mountpoint }}')
 
+  compose_command=(docker compose --project-directory "$install_root/current" --file "$install_root/current/compose.yaml")
+  snapshot_name=""
+
   backup_cleanup() {
-    systemctl start monitoring-stack.service || true
+    "${compose_command[@]}" start grafana || true
+    if [[ -n "$snapshot_name" ]]; then
+      rm -rf "$prometheus_volume_path/snapshots/$snapshot_name"
+    fi
     rm -rf "$staging_directory"
   }
 
-  systemctl stop monitoring-stack.service
+  # Prometheus is snapshotted live and Alertmanager state is copied live, so
+  # alert evaluation and delivery keep running. Only Grafana is stopped, for the
+  # few seconds needed to copy its SQLite database consistently.
   trap backup_cleanup EXIT
-  tar --create --gzip --file "$staging_directory/grafana.tar.gz" --directory "$grafana_volume_path" .
-  tar --create --gzip --file "$staging_directory/prometheus.tar.gz" --directory "$prometheus_volume_path" .
+  snapshot_name=$(curl --fail --silent --show-error --request POST http://127.0.0.1:9090/api/v1/admin/tsdb/snapshot | jq -r '.data.name')
+  if [[ -z "$snapshot_name" || "$snapshot_name" == "null" || ! -d "$prometheus_volume_path/snapshots/$snapshot_name" ]]; then
+    printf 'Prometheus did not create a TSDB snapshot.\n' >&2
+    exit 1
+  fi
+  tar --create --gzip --file "$staging_directory/prometheus.tar.gz" --directory "$prometheus_volume_path/snapshots/$snapshot_name" .
   tar --create --gzip --file "$staging_directory/alertmanager.tar.gz" --directory "$alertmanager_volume_path" .
+  "${compose_command[@]}" stop grafana
+  tar --create --gzip --file "$staging_directory/grafana.tar.gz" --directory "$grafana_volume_path" .
+  "${compose_command[@]}" start grafana
   printf 'release=%s\ncreated_at=%s\n' "$release_ref" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$staging_directory/manifest.txt"
   tar --create --gzip --file "$archive_path" --directory "$staging_directory" .
   chmod 0600 "$archive_path"
-  systemctl start monitoring-stack.service
-  rm -rf "$staging_directory"
+  backup_cleanup
   trap - EXIT
   find "$backup_directory" -maxdepth 1 -type f -name 'monitoring-*.tar.gz' -mtime +7 -delete
   printf 'monitoring_backup=%s\n' "$archive_path"
