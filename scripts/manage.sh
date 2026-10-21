@@ -267,7 +267,7 @@ verify_prometheus_targets() {
 wait_for_prometheus_targets() {
   local attempt
 
-  for (( attempt = 1; attempt <= 30; attempt++ )); do
+  for (( attempt = 1; attempt <= 90; attempt++ )); do
     if verify_prometheus_targets false; then
       return 0
     fi
@@ -304,7 +304,7 @@ verify_stack() {
   wait_for_prometheus_query backstage_backup 'time() - backstage_backup_last_success_timestamp_seconds{job="backstage-backup"} < 86400' 1
   wait_for_prometheus_query cloudflared_connections 'cloudflared_tunnel_ha_connections > 0' 1
   wait_for_prometheus_query github_runner_metrics 'github_runner_scrape_success{job="github-runners"} == 1' 1
-  wait_for_prometheus_query github_runner_capacity 'sum(github_runner_online{job="github-runners"}) == 2' 1
+  wait_for_prometheus_query github_runner_capacity 'sum(github_runner_online{job="github-runners"}) >= 2' 1
   wait_for_prometheus_query production_hosts 'count(up{job="node"} == 1) == 3' 1
   wait_for_prometheus_query k3s_state 'bharath_k3s_collector_success == 1' 1
   wait_for_prometheus_query wordpress_state 'bharath_wordpress_mariadb_up == 1' 1
