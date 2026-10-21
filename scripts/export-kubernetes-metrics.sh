@@ -122,7 +122,7 @@ while IFS=$'\t' read -r site namespace; do
 
   # A single slow exec on this small host must not report Redis as down, so retry once.
   redis_status=""
-  for redis_attempt in 1 2; do
+  for _ in 1 2; do
     redis_status=$("${kubectl_command[@]}" --namespace "$namespace" --request-timeout=20s exec deployment/redis -- \
       redis-cli --raw INFO stats memory clients 2>/dev/null || true)
     if grep -Fq 'redis_version:' <<< "$redis_status" || grep -Fq 'uptime_in_seconds:' <<< "$redis_status"; then
