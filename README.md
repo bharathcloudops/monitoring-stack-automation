@@ -27,7 +27,7 @@ stack.
 | Grafana | `13.2.2` | `0.20` | `512M` | Dashboards and native authentication |
 | Node Exporter | `v1.12.1` | `0.05` | `64M` | Local K3s host and textfile metrics inside the Compose network |
 | cAdvisor | `v0.60.6` | `0.10` | `192M` | Docker container metrics |
-| Blackbox Exporter | `v0.28.0` | `0.05` | `64M` | External HTTPS availability and TLS certificate probes |
+| Blackbox Exporter | `v0.29.0` | `0.05` | `64M` | External HTTPS availability and TLS certificate probes |
 
 Release `v1.2.14` uses a five-second refresh interval for file-discovered targets so strict post-deployment verification sees every production job within its bounded readiness window. Prometheus uses a 60-second scrape interval, seven-day retention, and an 8 GB storage ceiling. Prometheus, Alertmanager, and Blackbox Exporter bind to loopback. Grafana binds to `MONITORING_BIND_ADDRESS`, which should be a private address when an outbound tunnel provides ingress. Native Node Exporter `v1.12.1` agents are deployed separately by `shared-host-automation` on all three hosts; the local Compose exporter lets Prometheus read `k3s` and textfile metrics without opening Docker bridge access through the host firewall.
 

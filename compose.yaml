@@ -98,7 +98,7 @@ services:
   #============================================================================
 
   grafana:
-    image: grafana/grafana:13.2.3
+    image: grafana/grafana:13.2.4
 
     #==========================================================================
     # GRAFANA DEPENDENCIES
@@ -207,7 +207,7 @@ services:
   #============================================================================
 
   blackbox-exporter:
-    image: quay.io/prometheus/blackbox-exporter:v0.28.0
+    image: quay.io/prometheus/blackbox-exporter:v0.29.0
 
     #==========================================================================
     # BLACKBOX EXPORTER RUNTIME
