@@ -18,7 +18,7 @@ action="${1:-validate}"
 containerd_version="${CONTAINERD_VERSION:-2.4.2-3~ubuntu.24.04~noble}"
 docker_buildx_version="${DOCKER_BUILDX_VERSION:-0.38.1-1~ubuntu.24.04~noble}"
 docker_compose_version="${DOCKER_COMPOSE_VERSION:-5.6.0-1~ubuntu.24.04~noble}"
-docker_engine_version="${DOCKER_ENGINE_VERSION:-5:29.8.1-1~ubuntu.24.04~noble}"
+docker_engine_version="${DOCKER_ENGINE_VERSION:-5:29.9.2-1~ubuntu.24.04~noble}"
 
 #==============================================================================
 # ACTION VALIDATION
