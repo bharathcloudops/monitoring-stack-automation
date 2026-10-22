@@ -155,6 +155,8 @@ Prometheus routes firing alerts to the private Alertmanager service. Alertmanage
 
 Alertmanager stays private. Its external URL is the Grafana alerting page (`<Grafana root URL>/alerting/groups`) with the route prefix kept at `/`, so the "View In Alertmanager" button in each email opens the Alertmanager alerts in Grafana behind Cloudflare Access, and health endpoints and Prometheus delivery are unchanged.
 
+The Cloudflare origin error alert fires only after more than ten 5xx responses or origin request errors in five minutes, sustained for five minutes, so a single failed probe during a brief Grafana restart does not page.
+
 The `fwupd-refresh.service` unit is excluded from the failed systemd unit alert because it always fails on OCI cloud images.
 
 Encrypted host backups raise `BackupStale` (no success in 26 hours), `BackupFailed` (last run failed), and `BackupStorageNearFreeLimit` (more than 15 GB across repositories). The `backup-health` dashboard shows the last result, age, size, duration, and WordPress backup age.
