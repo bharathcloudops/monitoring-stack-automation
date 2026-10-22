@@ -26,7 +26,6 @@ required_files=(
   config/blackbox/blackbox.yml
   config/prometheus/prometheus.yml
   config/prometheus/rules/monitoring.rules.yml
-  config/prometheus/targets/backstage-backup.json
   config/prometheus/targets/backstage-postgres.json
   config/prometheus/targets/backstage.json
   config/prometheus/targets/blackbox.json
@@ -49,8 +48,6 @@ required_files=(
   tests/test-export-kubernetes-metrics.sh
   systemd/kubernetes-metrics-exporter.service
   systemd/kubernetes-metrics-exporter.timer
-  systemd/monitoring-stack-backup.service
-  systemd/monitoring-stack-backup.timer
 )
 
 for required_file in "${required_files[@]}"; do
@@ -97,7 +94,7 @@ for target_file in "$repository_root"/config/prometheus/targets/*.json; do
   ' "$target_file" >/dev/null
 done
 
-if [[ "$(grep -c 'refresh_interval: 5s' "$repository_root/config/prometheus/prometheus.yml")" -ne 7 ]]; then
+if [[ "$(grep -c 'refresh_interval: 5s' "$repository_root/config/prometheus/prometheus.yml")" -ne 6 ]]; then
   printf 'Every file-discovered Prometheus job must refresh within deployment verification time.\n' >&2
   exit 1
 fi
@@ -134,19 +131,8 @@ if ! jq -e '
 fi
 
 if ! grep -Fq 'backstage_readiness' "$repository_root/scripts/manage.sh" || \
-  ! grep -Fq 'backstage_postgresql' "$repository_root/scripts/manage.sh" || \
-  ! grep -Fq 'backstage_backup' "$repository_root/scripts/manage.sh"; then
+  ! grep -Fq 'backstage_postgresql' "$repository_root/scripts/manage.sh"; then
   printf 'Backstage targets must be included in full monitoring verification.\n' >&2
-  exit 1
-fi
-
-if ! jq -e '
-  length == 1 and
-  .[0].targets == ["10.10.10.3:9101"] and
-  .[0].labels.service == "backstage-backup"
-' "$repository_root/config/prometheus/targets/backstage-backup.json" >/dev/null || \
-  ! grep -Fq 'backstage_backup_last_success_timestamp_seconds' "$repository_root/config/prometheus/rules/monitoring.rules.yml"; then
-  printf 'Backstage backup freshness monitoring must be configured.\n' >&2
   exit 1
 fi
 

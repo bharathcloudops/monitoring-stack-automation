@@ -121,15 +121,6 @@ groups:
           summary: Backstage PostgreSQL connections exceed 80 percent
           description: Backstage PostgreSQL has sustained high connection utilisation for ten minutes.
 
-      - alert: BackstageBackupStale
-        expr: absent(backstage_backup_last_success_timestamp_seconds{job="backstage-backup"}) or time() - backstage_backup_last_success_timestamp_seconds{job="backstage-backup"} > 86400
-        for: 1h
-        labels:
-          severity: warning
-        annotations:
-          summary: Backstage backup is stale
-          description: No successful Backstage PostgreSQL backup has been recorded within 24 hours.
-
       #==========================================================================
       # EXTERNAL ENDPOINT ALERTS
       #==========================================================================

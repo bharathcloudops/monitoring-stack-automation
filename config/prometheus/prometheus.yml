@@ -146,16 +146,6 @@ scrape_configs:
         refresh_interval: 5s
 
           #============================================================================
-          # BACKSTAGE BACKUP METRICS
-          #============================================================================
-
-  - job_name: backstage-backup
-    file_sd_configs:
-      - files:
-          - /etc/prometheus/targets/backstage-backup.json
-        refresh_interval: 5s
-
-          #============================================================================
           # CLOUDFLARE CONNECTOR METRICS
           #============================================================================
 
