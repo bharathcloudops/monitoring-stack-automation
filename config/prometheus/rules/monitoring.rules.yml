@@ -250,7 +250,7 @@ groups:
           description: Host {{ $labels.host }} has sustained swap pressure for 15 minutes.
 
       - alert: HostSystemdUnitFailed
-        expr: node_systemd_unit_state{job="node",state="failed"} == 1
+        expr: node_systemd_unit_state{job="node",state="failed",name!="fwupd-refresh.service"} == 1
         for: 5m
         labels:
           severity: warning

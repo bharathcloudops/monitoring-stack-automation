@@ -313,7 +313,7 @@ if docker version >/dev/null 2>&1; then
   run_quietly docker run --rm \
     --entrypoint /bin/blackbox_exporter \
     "${blackbox_mount[@]}" \
-    quay.io/prometheus/blackbox-exporter:v0.29.0 \
+    quay.io/prometheus/blackbox-exporter:v0.29.1 \
     --config.file="$blackbox_config" \
     --config.check
 fi
