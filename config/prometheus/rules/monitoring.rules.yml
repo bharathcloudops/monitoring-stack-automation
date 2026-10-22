@@ -166,13 +166,13 @@ groups:
           description: The connector has reported no healthy edge connection for five minutes.
 
       - alert: CloudflareTunnelOriginErrors
-        expr: sum by (instance) (increase(cloudflared_tunnel_response_by_code{code=~"5.."}[5m])) > 0 or sum by (instance) (increase(cloudflared_tunnel_request_errors[5m])) > 0
-        for: 2m
+        expr: sum by (instance) (increase(cloudflared_tunnel_response_by_code{code=~"5.."}[5m])) > 10 or sum by (instance) (increase(cloudflared_tunnel_request_errors[5m])) > 10
+        for: 5m
         labels:
           severity: critical
         annotations:
           summary: Cloudflare Tunnel is returning origin errors
-          description: Connector {{ $labels.instance }} has returned HTTP 5xx responses or origin request errors during the last five minutes.
+          description: Connector {{ $labels.instance }} has returned more than ten HTTP 5xx responses or origin request errors in five minutes, sustained for five minutes.
 
       #==========================================================================
       # HOST CPU ALERT
