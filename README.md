@@ -14,6 +14,7 @@ Alertmanager, Grafana, Node Exporter, cAdvisor, and Blackbox Exporter.
 - OCI host CPU, memory, filesystem, and container capacity
 - GitHub Actions runner availability, activity, queue depth, and failures
 - Backstage readiness, PostgreSQL, and backup freshness
+- Encrypted host backup freshness, failures, repository size, and the free Object Storage limit
 - Cloudflare Tunnel health, external probes, and certificate expiry
 - Prometheus, Alertmanager, and Grafana health
 
@@ -24,7 +25,7 @@ stack.
 | --- | --- | ---: | ---: | --- |
 | Prometheus | `v3.15.1` | `0.40` | `1536M` | Metrics storage, recording rules, and alert evaluation |
 | Alertmanager | `v0.34.1` | `0.05` | `64M` | Gmail SMTP notification routing and inhibition |
-| Grafana | `13.2.2` | `0.20` | `512M` | Dashboards and native authentication |
+| Grafana | `13.2.4` | `0.20` | `512M` | Dashboards and native authentication |
 | Node Exporter | `v1.12.1` | `0.05` | `64M` | Local K3s host and textfile metrics inside the Compose network |
 | cAdvisor | `v0.60.6` | `0.10` | `192M` | Docker container metrics |
 | Blackbox Exporter | `v0.29.1` | `0.05` | `64M` | External HTTPS availability and TLS certificate probes |
@@ -152,6 +153,12 @@ ALERT DELIVERY
 
 Prometheus routes firing alerts to the private Alertmanager service. Alertmanager sends resolved and firing notifications from `bharathcloudops@gmail.com` to `adigopulabharath@outlook.com` through `smtp.gmail.com:587` with TLS. Critical alerts repeat hourly, warning alerts use the four-hour default, and matching warnings are inhibited while their critical alert is active.
 
+Alertmanager stays private. Its external URL is the Grafana alerting page (`<Grafana root URL>/alerting/groups`) with the route prefix kept at `/`, so the "View In Alertmanager" button in each email opens the Alertmanager alerts in Grafana behind Cloudflare Access, and health endpoints and Prometheus delivery are unchanged.
+
+The `fwupd-refresh.service` unit is excluded from the failed systemd unit alert because it always fails on OCI cloud images.
+
+Encrypted host backups raise `BackupStale` (no success in 26 hours), `BackupFailed` (last run failed), and `BackupStorageNearFreeLimit` (more than 15 GB across repositories). The `backup-health` dashboard shows the last result, age, size, duration, and WordPress backup age.
+
 Alert rules cover target availability, external endpoints, certificates, Cloudflare, GitHub runners and queues, host CPU/RAM/swap/disk/inodes/systemd, managed storage paths, K3s node/workload/container/PVC state, WordPress application/database/backup state, container memory, Prometheus health, and Alertmanager delivery failures.
 
 <!--
@@ -176,6 +183,7 @@ Provisioned dashboards use stable UIDs:
 - `storage-capacity`
 - `kubernetes-cluster`
 - `wordpress-platform`
+- `backup-health`
 
 The dashboards keep infrastructure, storage, K3s, and WordPress projects distinct while retaining the existing monitoring, container, external availability, alert, Cloudflare, Backstage, and GitHub runner views.
 

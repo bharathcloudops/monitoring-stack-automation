@@ -71,6 +71,8 @@ services:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
       - --cluster.listen-address=
+      - --web.external-url=${GRAFANA_ROOT_URL:-http://localhost:3000}/alerting/groups
+      - --web.route-prefix=/
 
     #==========================================================================
     # ALERTMANAGER RESOURCE LIMITS

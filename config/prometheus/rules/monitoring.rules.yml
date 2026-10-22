@@ -391,6 +391,37 @@ groups:
           description: No successful backup for site {{ $labels.site }} has completed during the last 26 hours.
 
       #==========================================================================
+      # ENCRYPTED HOST BACKUP ALERTS
+      #==========================================================================
+
+      - alert: BackupStale
+        expr: time() - bharath_backup_last_success_timestamp_seconds{job="node"} > 93600
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Backup {{ $labels.source }} is stale
+          description: No successful {{ $labels.source }} backup has completed during the last 26 hours.
+
+      - alert: BackupFailed
+        expr: bharath_backup_last_status{job="node"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: Backup {{ $labels.source }} failed
+          description: The most recent {{ $labels.source }} backup run failed. Check the backup service journal on {{ $labels.host }}.
+
+      - alert: BackupStorageNearFreeLimit
+        expr: sum(bharath_backup_repository_size_bytes{job="node"}) > 15000000000
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: Backup storage is near the free Object Storage limit
+          description: Host backup repositories exceed 15 GB of the 20 GB free Object Storage allowance shared with WordPress backups.
+
+      #==========================================================================
       # CONTAINER RESOURCE ALERT
       #==========================================================================
 

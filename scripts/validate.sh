@@ -43,6 +43,7 @@ required_files=(
   dashboards/kubernetes-cluster.json
   dashboards/storage-capacity.json
   dashboards/wordpress-platform.json
+  dashboards/backups.json
   scripts/export-kubernetes-metrics.sh
   scripts/check-latest-versions.sh
   tests/test-export-kubernetes-metrics.sh
@@ -201,9 +202,9 @@ if ! jq -s -e '([.[].uid] | unique | length) == length' "$repository_root"/dashb
   exit 1
 fi
 
-if ! grep -Fq 'dashboard_count != 13' "$repository_root/scripts/manage.sh" || \
-  ! grep -Fq 'Expected thirteen provisioned dashboards' "$repository_root/scripts/manage.sh"; then
-  printf 'Runtime verification must require all thirteen Grafana dashboards.\n' >&2
+if ! grep -Fq 'dashboard_count != 14' "$repository_root/scripts/manage.sh" || \
+  ! grep -Fq 'Expected fourteen provisioned dashboards' "$repository_root/scripts/manage.sh"; then
+  printf 'Runtime verification must require all fourteen Grafana dashboards.\n' >&2
   exit 1
 fi
 
@@ -245,6 +246,9 @@ for alert_name in \
   WordPressDeploymentUnavailable \
   WordPressDatabaseUnavailable \
   WordPressBackupStale \
+  BackupStale \
+  BackupFailed \
+  BackupStorageNearFreeLimit \
   ManagedStoragePathMissing; do
   if ! grep -Fq "alert: $alert_name" "$repository_root/config/prometheus/rules/monitoring.rules.yml"; then
     printf 'Required observability alert is missing: %s\n' "$alert_name" >&2
