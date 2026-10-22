@@ -207,7 +207,7 @@ services:
   #============================================================================
 
   blackbox-exporter:
-    image: quay.io/prometheus/blackbox-exporter:v0.29.0
+    image: quay.io/prometheus/blackbox-exporter:v0.29.1
 
     #==========================================================================
     # BLACKBOX EXPORTER RUNTIME
