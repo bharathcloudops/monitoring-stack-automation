@@ -108,12 +108,18 @@ printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.do
 #==============================================================================
 
 apt-get update >/dev/null
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+package_log=$(mktemp)
+if ! DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install --yes --quiet \
   "docker-ce=$docker_engine_version" \
   "docker-ce-cli=$docker_engine_version" \
   "containerd.io=$containerd_version" \
   "docker-buildx-plugin=$docker_buildx_version" \
-  "docker-compose-plugin=$docker_compose_version" >/dev/null
+  "docker-compose-plugin=$docker_compose_version" > "$package_log" 2>&1; then
+  tail -n 40 "$package_log" >&2
+  rm -f "$package_log"
+  exit 1
+fi
+rm -f "$package_log"
 
 #==============================================================================
 # DOCKER RUNTIME VALIDATION
