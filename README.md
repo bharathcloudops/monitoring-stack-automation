@@ -13,7 +13,7 @@ Alertmanager, Grafana, Node Exporter, cAdvisor, and Blackbox Exporter.
 
 - OCI host CPU, memory, filesystem, and container capacity
 - GitHub Actions runner availability, activity, queue depth, and failures
-- Backstage readiness, PostgreSQL, and backup freshness
+- Backstage readiness and PostgreSQL
 - Encrypted host backup freshness, failures, repository size, and the free Object Storage limit
 - Cloudflare Tunnel health, external probes, and certificate expiry
 - Prometheus, Alertmanager, and Grafana health
@@ -106,7 +106,7 @@ LIFECYCLE OPERATIONS
 | `rollback` | Yes | Exchanges current and previous release symlinks |
 | `test-alert` | No | Sends controlled firing and resolved emails through an accelerated test-only route and verifies Alertmanager notification counters |
 
-`monitoring-stack-backup.timer` runs daily at 02:30 with a random delay of up to 15 minutes. Backups are written under `/var/backups/monitoring-stack`, retain three Docker volumes, and delete archives older than seven days. Restore accepts only an existing managed archive and verifies all four control-plane endpoints after startup.
+Scheduled backups of Grafana and Alertmanager state are handled by `bharath-backup-monitoring.timer`, deployed by `11 - Configure production backups` in `bharath-oci-host-config`, which stores encrypted restic snapshots in OCI Object Storage. The `backup` and `restore` actions here remain only as a manual emergency archive under `/var/backups/monitoring-stack`; deploying this release removes the retired `monitoring-stack-backup` timer. Restore accepts only an existing managed archive and verifies all four control-plane endpoints after startup.
 
 <!--
 ==============================================================================

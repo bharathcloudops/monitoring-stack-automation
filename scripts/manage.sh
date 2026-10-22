@@ -123,15 +123,14 @@ deploy_stack() {
 
   ln -sfn "$release_path" "$install_root/current"
   install -m 0644 "$release_path/systemd/monitoring-stack.service" /etc/systemd/system/monitoring-stack.service
-  install -m 0644 "$release_path/systemd/monitoring-stack-backup.service" /etc/systemd/system/monitoring-stack-backup.service
-  install -m 0644 "$release_path/systemd/monitoring-stack-backup.timer" /etc/systemd/system/monitoring-stack-backup.timer
   install -m 0755 "$release_path/scripts/export-kubernetes-metrics.sh" /usr/local/sbin/export-kubernetes-metrics
   install -m 0644 "$release_path/systemd/kubernetes-metrics-exporter.service" /etc/systemd/system/kubernetes-metrics-exporter.service
   install -m 0644 "$release_path/systemd/kubernetes-metrics-exporter.timer" /etc/systemd/system/kubernetes-metrics-exporter.timer
+  systemctl disable --now monitoring-stack-backup.timer >/dev/null 2>&1 || true
+  rm -f /etc/systemd/system/monitoring-stack-backup.service /etc/systemd/system/monitoring-stack-backup.timer
   systemctl daemon-reload
   systemctl enable monitoring-stack.service
   systemctl reload-or-restart monitoring-stack.service
-  systemctl enable --now monitoring-stack-backup.timer
   systemctl enable --now kubernetes-metrics-exporter.timer
   systemctl start kubernetes-metrics-exporter.service
   verify_stack
@@ -233,11 +232,11 @@ verify_prometheus_targets() {
   response=$(curl --fail --silent --show-error http://127.0.0.1:9090/api/v1/targets)
   if ! jq -e '
     .status == "success" and
-    (["alertmanager", "backstage-backup", "backstage-health", "backstage-postgres", "blackbox-exporter", "cadvisor", "cloudflared", "grafana", "github-runners", "node", "prometheus"] -
+    (["alertmanager", "backstage-health", "backstage-postgres", "blackbox-exporter", "cadvisor", "cloudflared", "grafana", "github-runners", "node", "prometheus"] -
       ([.data.activeTargets[].labels.job] | unique) | length) == 0 and
     ([
       .data.activeTargets[] |
-      select(.labels.job | test("^(prometheus|node|cadvisor|grafana|alertmanager|blackbox-exporter|cloudflared|github-runners|backstage-health|backstage-postgres|backstage-backup)$")) |
+      select(.labels.job | test("^(prometheus|node|cadvisor|grafana|alertmanager|blackbox-exporter|cloudflared|github-runners|backstage-health|backstage-postgres)$")) |
       select(.health != "up")
     ] | length) == 0
   ' <<< "$response" >/dev/null; then
@@ -250,7 +249,7 @@ verify_prometheus_targets() {
     ' <<< "$response" >&2
     jq -r '
       .data.activeTargets[] |
-      select(.labels.job | test("^(prometheus|node|cadvisor|grafana|alertmanager|blackbox-exporter|cloudflared|github-runners|backstage-health|backstage-postgres|backstage-backup)$")) |
+      select(.labels.job | test("^(prometheus|node|cadvisor|grafana|alertmanager|blackbox-exporter|cloudflared|github-runners|backstage-health|backstage-postgres)$")) |
       select(.health != "up") |
       "prometheus_target_failure=" + .labels.job + "/" + .labels.instance + ":" + .health + ":" +
       (.lastError | gsub("[\\r\\n]"; " "))
@@ -301,7 +300,6 @@ verify_stack() {
   wait_for_prometheus_query external_probes 'probe_success{job="blackbox"} == 1' 3
   wait_for_prometheus_query backstage_readiness 'probe_success{job="backstage-health"} == 1' 1
   wait_for_prometheus_query backstage_postgresql 'pg_up{job="backstage-postgres"} == 1' 1
-  wait_for_prometheus_query backstage_backup 'time() - backstage_backup_last_success_timestamp_seconds{job="backstage-backup"} < 86400' 1
   wait_for_prometheus_query cloudflared_connections 'cloudflared_tunnel_ha_connections > 0' 1
   wait_for_prometheus_query github_runner_metrics 'github_runner_scrape_success{job="github-runners"} == 1' 1
   wait_for_prometheus_query github_runner_capacity 'sum(github_runner_online{job="github-runners"}) >= 2' 1
@@ -332,9 +330,6 @@ verify_stack() {
   fi
   printf 'grafana_dashboards=ready\n'
 
-  systemctl is-enabled --quiet monitoring-stack-backup.timer
-  systemctl is-active --quiet monitoring-stack-backup.timer
-  printf 'monitoring_backup_timer=ready\n'
   systemctl is-enabled --quiet kubernetes-metrics-exporter.timer
   systemctl is-active --quiet kubernetes-metrics-exporter.timer
   printf 'kubernetes_metrics_timer=ready\n'
