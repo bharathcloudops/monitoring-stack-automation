@@ -22,7 +22,7 @@ stack.
 
 | Component | Version | CPU limit | Memory limit | Purpose |
 | --- | --- | ---: | ---: | --- |
-| Prometheus | `v3.15.0` | `0.40` | `1536M` | Metrics storage, recording rules, and alert evaluation |
+| Prometheus | `v3.15.1` | `0.40` | `1536M` | Metrics storage, recording rules, and alert evaluation |
 | Alertmanager | `v0.34.1` | `0.05` | `64M` | Gmail SMTP notification routing and inhibition |
 | Grafana | `13.2.2` | `0.20` | `512M` | Dashboards and native authentication |
 | Node Exporter | `v1.12.1` | `0.05` | `64M` | Local K3s host and textfile metrics inside the Compose network |
