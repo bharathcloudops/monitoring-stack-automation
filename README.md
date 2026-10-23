@@ -161,6 +161,8 @@ Docker package installation output is captured in a temporary log and only its t
 
 `HostRebootRequired` warns when kernel or library updates have been installed but a host has not been rebooted for three days, using the `bharath_reboot_required_age_seconds` metric from the node storage collector. Unattended upgrades never reboot on their own.
 
+Deploy verification waits up to three minutes for every Prometheus rule to report healthy, because a recreated Prometheus shows all rules as unknown until their first evaluation. A single immediate check made deploys fail intermittently.
+
 The `fwupd-refresh.service` unit is excluded from the failed systemd unit alert because it always fails on OCI cloud images.
 
 Encrypted host backups raise `BackupStale` (no success in 26 hours), `BackupFailed` (last run failed), and `BackupStorageNearFreeLimit` (more than 15 GB across repositories). The `backup-health` dashboard shows the last result, age, size, duration, and WordPress backup age.
