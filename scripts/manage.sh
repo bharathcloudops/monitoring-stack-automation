@@ -276,6 +276,30 @@ wait_for_prometheus_targets() {
   verify_prometheus_targets
 }
 
+verify_prometheus_rules() {
+  local rules
+
+  rules=$(curl --fail --silent --show-error http://127.0.0.1:9090/api/v1/rules) || return 1
+  jq -e '
+    .status == "success" and
+    ([.data.groups[].rules[]] | length) > 0 and
+    ([.data.groups[].rules[] | select(.health != "ok")] | length) == 0
+  ' <<< "$rules" >/dev/null
+}
+
+wait_for_prometheus_rules() {
+  local attempt
+
+  for (( attempt = 1; attempt <= 90; attempt++ )); do
+    if verify_prometheus_rules; then
+      return 0
+    fi
+    sleep 2
+  done
+  printf 'One or more Prometheus rules are unhealthy.\n' >&2
+  return 1
+}
+
 verify_stack() {
   local running_services
   local dashboard_count
@@ -309,15 +333,7 @@ verify_stack() {
   wait_for_prometheus_query wordpress_availability 'probe_success{job="blackbox",service="WordPress"} == 1' 1
   wait_for_prometheus_query alertmanager_discovery 'prometheus_notifications_alertmanagers_discovered > 0' 1
 
-  rules=$(curl --fail --silent --show-error http://127.0.0.1:9090/api/v1/rules)
-  if ! jq -e '
-    .status == "success" and
-    ([.data.groups[].rules[]] | length) > 0 and
-    ([.data.groups[].rules[] | select(.health != "ok")] | length) == 0
-  ' <<< "$rules" >/dev/null; then
-    printf 'One or more Prometheus rules are unhealthy.\n' >&2
-    return 1
-  fi
+  wait_for_prometheus_rules
   printf 'prometheus_rules=ready\n'
 
   curl --fail --silent --show-error http://127.0.0.1:9093/api/v2/status >/dev/null
