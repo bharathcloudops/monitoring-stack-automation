@@ -249,6 +249,15 @@ groups:
           summary: A managed host systemd unit has failed
           description: Unit {{ $labels.name }} on {{ $labels.host }} has remained failed for five minutes.
 
+      - alert: HostRebootRequired
+        expr: bharath_reboot_required_age_seconds{job="node"} > 259200
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: Host {{ $labels.host }} has needed a reboot for three days
+          description: Kernel or library updates are installed on {{ $labels.host }} but not active. Reboot it in a maintenance window with the reboot workflow.
+
       - alert: ManagedStoragePathMissing
         expr: bharath_managed_path_available{job="node"} == 0
         for: 15m

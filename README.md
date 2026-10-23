@@ -159,6 +159,8 @@ The Cloudflare origin error alert fires only after more than ten 5xx responses o
 
 Docker package installation output is captured in a temporary log and only its tail is printed on failure, so needrestart noise cannot push the `monitoring_services=ready` success marker out of the output OCI Run Command returns.
 
+`HostRebootRequired` warns when kernel or library updates have been installed but a host has not been rebooted for three days, using the `bharath_reboot_required_age_seconds` metric from the node storage collector. Unattended upgrades never reboot on their own.
+
 The `fwupd-refresh.service` unit is excluded from the failed systemd unit alert because it always fails on OCI cloud images.
 
 Encrypted host backups raise `BackupStale` (no success in 26 hours), `BackupFailed` (last run failed), and `BackupStorageNearFreeLimit` (more than 15 GB across repositories). The `backup-health` dashboard shows the last result, age, size, duration, and WordPress backup age.
