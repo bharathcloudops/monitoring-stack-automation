@@ -232,6 +232,7 @@ for alert_name in \
   WordPressDeploymentUnavailable \
   WordPressDatabaseUnavailable \
   WordPressBackupStale \
+  HostRebootRequired \
   BackupStale \
   BackupFailed \
   BackupStorageNearFreeLimit \
